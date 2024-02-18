@@ -4,7 +4,7 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 from unidecode import unidecode
-import time, os
+import time, logging
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
@@ -19,6 +19,7 @@ class Post:
         options.add_argument('--disable-gpu')
         options.add_argument('--disable-dev-shm-usage')
         options.add_argument("--log-level=3")
+        logging.basicConfig(level=logging.WARNING)
         max_retries = 5
 
         for _ in range(max_retries):
@@ -38,6 +39,7 @@ class Post:
         page_source = self.driver.page_source
         self.soup = BeautifulSoup(page_source, "html.parser")
         time.sleep(wait) # time for page content to load
+        self.price_mode = self._post_kind()
 
     def exists(self, token):
         '''
@@ -84,31 +86,128 @@ class Post:
         text = text.split()[0].strip()
         return unidecode(text)
     
+
     
+    def data(self):
+        '''
+            gets the post's meterage, build, rooms, elevator, parking, and storage status
+
+            the difference between rent_data() and data() is the price range in the rent posts. so in rent_data()
+
+            it checks if there is a price range or static price. in other posts there is no need for checking this difference
+
+            so we use data().
+
+        '''
+        data = [{}]
+        info = self._get_info()
+        price = self._get_price()
+
+        data[0].update(info)
+        data[0].update(price[0])
+        if len(price) == 2:
+            data.append({})
+            data[1].update(info)
+            data[1].update(price[1])
+
+        if not price:
+            # didn't have price
+            return False
+
+        return data
+
+         
 
 
+    def _is_number(self, str):
+                try:
+                    float(str)
+                    return True
+                except ValueError:
+                    return False
+                
+    def _get_number(self, str):
+                text = str.split()
+                if text[1] == "میلیاردودیعه" or text[1] == "میلیارداجاره":
+                    num = float(text[0]) * 1000
+                elif text[1] == "میلیونودیعه" or text[1] == "میلیوناجاره":
+                    num = float(text[0])
+                elif text[1] == "هزاراجاره" or text[1] == "هزارودیعه":
+                    num = float(text[0]) / 1000
+                elif text[1] == "تومان":
+                    num = int(unidecode("".join(text[0].split("٬")))) / 1000000
+                return num
 
-def is_number(str):
-            try:
-                float(str)
-                return True
-            except ValueError:
-                return False
+    def _post_kind(self):
+                element = self.driver.execute_script("return document.getElementsByClassName('kt-feature-row');")
+                if element:
+                    return True # dynamic price
+                return False # static price
+    
+    def _get_info(self):
+        element = self.driver.execute_script("return document.getElementsByClassName('kt-group-row-item');")
+
+        data = [item.text for item in element]
+        info = {}
+        counter = 0
+        for d in data:
+            if d == "متراژ":
+                 info['meterage'] = int(unidecode(data[counter+3]))
+            elif d == "ساخت":
+                 info["build"] = int(unidecode(data[counter+3]))
+            elif d == "اتاق":
+                 info["rooms"] = int(unidecode(data[counter+3]))
+            elif "آسانسور" in d:
+                 info["elevator"] = 1 if d == "آسانسور" else 0
+            elif "پارکینگ" in d:
+                 info["parking"] =  1 if d == "پارکینگ" else 0
+            elif "انباری" in d:
+            	 info["storage"] = 1 if d == "انباری" else 0
+            elif "بالکن" in d:
+                 info["balcony"] = 1 if d == "بالکن" else 0
+
+            counter += 1
+
+        return info
+    
+    def _get_price(self):
+            price = []
+            if self.price_mode: # price is dynamic (it's a rent post)
+                element = self.driver.execute_script("return document.getElementsByClassName('kt-col-6');")
+                if not element:
+                    time.sleep(2)
+                    element = self.driver.execute_script("return document.getElementsByClassName('kt-col-6');")
+                element = [e.text for e in element]
+                for i in range(4):
+                    price.append(
+                        self._get_number(element[i])
+                        if self._is_number(unidecode(element[i].split()[0]))
+                        else 0
+                    )
+                price = [{"price1": price[0], "price2": price[2]},
+                         {"price1": price[1], "price2": price[3]}]
             
-def get_number(str):
-            text = str.split()
-            if text[1] == "میلیاردودیعه" or text[1] == "میلیارداجاره":
-                num = float(text[0]) * 1000
-            elif text[1] == "میلیونودیعه" or text[1] == "میلیوناجاره":
-                num = float(text[0])
-            elif text[1] == "هزاراجاره" or text[1] == "هزارودیعه":
-                num = float(text[0]) / 1000
-            elif text[1] == "تومان":
-                num = int(unidecode("".join(text[0].split("٬")))) / 1000000
-            return num
+            else: # price is static (could be both rent or sell post)
+                element = self.driver.execute_script("return document.getElementsByClassName('kt-unexpandable-row__value');")
+                if not element:
+                    time.sleep(2)
+                    element = self.driver.execute_script("return document.getElementsByClassName('kt-unexpandable-row__value');")
+                element = [e.text for e in element]
+            
 
+                for item in element:
+                    if item != "توافقی" and 'تومان' in item:
+                        price.append(
+                            self._get_number(item)
+                            if self._is_number(
+                                unidecode("".join(item.split()[0].split("٬")))
+                            )
+                            else 0
+                        )
 
+                if not price:
+                    return False
+                
+                price = [{"price1": price[0], "price2": price[1]}]
 
-post = Post()
-post.get('QZQDfJqG', 2)
-print(post.rent_data())
+            return price
