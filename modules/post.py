@@ -90,13 +90,7 @@ class Post:
     
     def data(self):
         '''
-            gets the post's meterage, build, rooms, elevator, parking, and storage status
-
-            the difference between rent_data() and data() is the price range in the rent posts. so in rent_data()
-
-            it checks if there is a price range or static price. in other posts there is no need for checking this difference
-
-            so we use data().
+            gets the post's meterage, build, rooms, (elevator or balcony), parking, and storage status + prices
 
         '''
         data = [{}]
