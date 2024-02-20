@@ -114,29 +114,29 @@ class Post:
 
 
     def _is_number(self, str):
-                try:
-                    float(str)
-                    return True
-                except ValueError:
-                    return False
+        try:
+            float(str)
+            return True
+        except ValueError:
+            return False
                 
     def _get_number(self, str):
-                text = str.split()
-                if text[1] == "میلیاردودیعه" or text[1] == "میلیارداجاره":
-                    num = float(text[0]) * 1000
-                elif text[1] == "میلیونودیعه" or text[1] == "میلیوناجاره":
-                    num = float(text[0])
-                elif text[1] == "هزاراجاره" or text[1] == "هزارودیعه":
-                    num = float(text[0]) / 1000
-                elif text[1] == "تومان":
-                    num = int(unidecode("".join(text[0].split("٬")))) / 1000000
-                return num
+        text = str.split()
+        if text[1] == "میلیاردودیعه" or text[1] == "میلیارداجاره":
+            num = float(text[0]) * 1000
+        elif text[1] == "میلیونودیعه" or text[1] == "میلیوناجاره":
+            num = float(text[0])
+        elif text[1] == "هزاراجاره" or text[1] == "هزارودیعه":
+            num = float(text[0]) / 1000
+        elif text[1] == "تومان":
+            num = int(unidecode("".join(text[0].split("٬")))) / 1000000
+        return num
 
     def _post_kind(self):
-                element = self.driver.execute_script("return document.getElementsByClassName('kt-feature-row');")
-                if element:
-                    return True # dynamic price
-                return False # static price
+        element = self.driver.execute_script("return document.getElementsByClassName('kt-feature-row');")
+        if element:
+            return True # dynamic price
+        return False # static price
     
     def _get_info(self):
         element = self.driver.execute_script("return document.getElementsByClassName('kt-group-row-item');")
