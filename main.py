@@ -2,14 +2,23 @@ import json, os
 from modules.last_post_date import last_post_date as date
 from crawler import Crawler
 
+def load_json(state=False):
+    if not state:
+        with open('cities.json') as file:
+            return json.load(file)
+    if state['category'] == 'extract tokens':
+        with open(f"states/{state['mode']}-state.json", "r") as file:
+            return file
+    elif state['category'] == 'extract data':
+        with open(f"states/{state['mode']}-state.json", "r") as file:
+            return file
 
 
 if __name__ == '__main__':
 
     # loads supported cities from cities.json
     try:
-        with open('cities.json') as file:
-            cities = json.load(file)
+        cities = load_json()
     except Exception as e:
         print(e)
         exit
@@ -82,26 +91,25 @@ if __name__ == '__main__':
 
     # extract tokens
     if state['mode'] == 'extract tokens' and state['duration'] == '0': # continue last process
-        if os.path.isfile(f"states/{state['category']}-extract-tokens-state.json"):
-            with open(f"states/{state['category']}-extract-tokens-state.json", "r") as file:
-                last_state = json.load(file)[-1]
-                state = {
-                    "id": last_state['id'],
-                    "category": last_state['category'],
-                    "page": last_state['page'], 
-                    "last_post_date": last_state['last_post_date'], 
-                    "city": last_state[cities], 
-                    "request_count": 50, 
-                    "duration": last_state['duration'],
-                    "status": True
-                    }
+        if os.path.isfile(f"states/{state['mode']}-state.json"):
+            last_state = load_json(state)[-1]
+            state = {
+                "id": last_state['id'],
+                "category": last_state['category'],
+                "page": last_state['page'], 
+                "last_post_date": last_state['last_post_date'], 
+                "city": last_state[cities], 
+                "request_count": 50, 
+                "duration": last_state['duration'],
+                "status": True
+                }
             Crawler.extract_tokens(state)
         else:
             print("process didn't found")
 
         exit()
 
-    else: # selected a new duration or not in extract tokens mode
+    else: # selected a new duration or extract data mode
 
         # selecting category
         while True:
@@ -159,10 +167,9 @@ if __name__ == '__main__':
                 print('exiting...')
                 exit()
             ans = ans.split()
-
             selected_cities = []
             for number in ans:
-                if number not in cities.keys():
+                if choices[number] not in cities.keys():
                     selected_cities.clear()
                     print('invalid input, try again')
                     print('- - - - - - - - - - - -')
