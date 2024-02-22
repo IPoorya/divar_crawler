@@ -109,7 +109,7 @@ if __name__ == '__main__':
 
         exit()
 
-    else: # selected a new duration or extract data mode
+    elif state['mode'] == 'extract tokens': # selected a new duration
 
         # selecting category
         while True:
@@ -194,9 +194,8 @@ if __name__ == '__main__':
         
 
     elif state['mode'] == 'extract data':
-        if os.path.isfile(f"states/{state['category']}-extract-data-state.json"):
-            with open(f"states/{state['category']}-extract-data-state.json", "r") as file:
-                last_state = json.load(file)[-1]
+        if os.path.isfile(f"states/{state['mode']}-state.json"):
+                last_state = load_json(state)[-1]
                 state = {
                     "category": last_state['category'],
                     "file": last_state['file'],
@@ -206,10 +205,12 @@ if __name__ == '__main__':
                     }
         else:
             state = {
-                "category": state['category'],
+                "category": '',
+                # "category": state['category'],
                 "file": '', 
                 "window": 0, 
-                "city": state[cities],
+                "city": '',
+                # "city": state['cities'],
                 "p": 0
                 }
 
