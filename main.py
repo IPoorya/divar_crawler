@@ -1,10 +1,10 @@
 import json, os
 from modules.last_post_date import last_post_date as date
-from crawler import Crawler
+from modules.crawler import Crawler
 
 def load_json(state=False):
     if not state:
-        with open('cities.json') as file:
+        with open('modules/cities.json') as file:
             return json.load(file)
     if state['category'] == 'extract tokens':
         with open(f"states/{state['mode']}-state.json", "r") as file:
