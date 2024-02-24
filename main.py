@@ -6,15 +6,17 @@ def load_json(state=False):
     if not state:
         with open('modules/cities.json') as file:
             return json.load(file)
-    if state['category'] == 'extract tokens':
-        with open(f"states/{state['mode']}-state.json", "r") as file:
-            return file
-    elif state['category'] == 'extract data':
-        with open(f"states/{state['mode']}-state.json", "r") as file:
-            return file
+    if state['mode'] == 'extract tokens':
+        with open(f"states/{state['category']}-state.json", "r") as file:
+            return json.load(file)
+    elif state['mode'] == 'extract data':
+        with open(f"states/{state['category']}-state.json", "r") as file:
+            return json.load(file)
 
 
 if __name__ == '__main__':
+
+    my_crawler = Crawler()
 
     # loads supported cities from cities.json
     try:
@@ -51,7 +53,42 @@ if __name__ == '__main__':
             print('- - - - - - - - - - - -')
             continue
 
+    print('')
+    # selecting category
+    while state['mode'] == 'extract tokens':
+        print('select a category number:')
+        print('1. apartment sell')
+        print('2. apartment rent')
+        print('3. house and villa sell')
+        print('4. house and villa rent')
+        print('press enter to exit')
+        ans = input()
+        if ans == '1':
+            state['category'] = 'apartment-sell'
+            break
 
+        elif ans == '2':
+            state['category'] = 'apartment-rent'
+            break
+
+        elif ans == '3':
+            state['category'] = 'house-villa-sell'
+            break
+
+        elif ans == '4':
+            state['category'] = 'house-villa-rent'
+            break
+
+        elif ans == '':
+            print('exiting...')
+            exit()
+        else:
+            print('invalid input, try again')
+            print('- - - - - - - - - - - -')
+            continue
+
+
+    print('')
     # selecting duration
     while state['mode'] == 'extract tokens':
         print('select a duration')
@@ -77,7 +114,7 @@ if __name__ == '__main__':
             break
 
         elif ans == '1' or ans == '2' or ans == '3' or ans == '4' or ans == '5':
-            state['duration'] = persian_number[ans]
+            state['duration'] = ans
             break
 
         elif ans == '':
@@ -89,21 +126,22 @@ if __name__ == '__main__':
             continue
 
 
+    print('')
     # extract tokens
     if state['mode'] == 'extract tokens' and state['duration'] == '0': # continue last process
-        if os.path.isfile(f"states/{state['mode']}-state.json"):
+        if os.path.isfile(f"states/{state['category']}-state.json"):
             last_state = load_json(state)[-1]
             state = {
-                "id": last_state['id'],
                 "category": last_state['category'],
+                "mode": last_state['mode'],
                 "page": last_state['page'], 
                 "last_post_date": last_state['last_post_date'], 
-                "city": last_state[cities], 
-                "request_count": 50, 
+                "city": last_state['city'], 
+                "request_count": last_state['request_count'], 
                 "duration": last_state['duration'],
-                "status": True
+                "status": last_state['status']
                 }
-            Crawler.extract_tokens(state)
+            my_crawler.extract_tokens(state)
         else:
             print("process didn't found")
 
@@ -111,39 +149,7 @@ if __name__ == '__main__':
 
     elif state['mode'] == 'extract tokens': # selected a new duration
 
-        # selecting category
-        while True:
-            print('select a category number:')
-            print('1. apartment sell')
-            print('2. apartment rent')
-            print('3. house and villa sell')
-            print('4. house and villa rent')
-            print('press enter to exit')
-            ans = input()
-            if ans == '1':
-                state['category'] = 'apartment-sell'
-                break
-
-            elif ans == '2':
-                state['category'] = 'apartment-rent'
-                break
-
-            elif ans == '3':
-                state['category'] = 'house-villa-sell'
-                break
-
-            elif ans == '4':
-                state['category'] = 'house-villa-rent'
-                break
-
-            elif ans == '':
-                print('exiting...')
-                exit()
-            else:
-                print('invalid input, try again')
-                print('- - - - - - - - - - - -')
-                continue
-
+        print('')
         # selecting cities
         while True:
             choices = {
@@ -181,17 +187,19 @@ if __name__ == '__main__':
 
     
     # new process for extracting tokens
-    if state['mode'] == 'extract tokens' and state['duration'] in persian_number.values(): 
+    if state['mode'] == 'extract tokens' and state['duration'] in persian_number.keys(): 
         state = {
                 "category": state['category'],
+                "mode": state['mode'],
                 "page": 0, 
                 "last_post_date": date(), 
                 "city": state['cities'], 
-                "request_count": 50, 
+                "request_count": 10, 
                 "duration": state['duration'],
                 "status": True
                 }
         
+        my_crawler.extract_tokens(st=state)
 
     elif state['mode'] == 'extract data':
         if os.path.isfile(f"states/{state['mode']}-state.json"):
@@ -215,4 +223,4 @@ if __name__ == '__main__':
                 }
 
     
-    Crawler.extract_data(state)
+        my_crawler.extract_data(st=state)

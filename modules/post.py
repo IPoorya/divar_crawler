@@ -35,20 +35,22 @@ class Post:
             gets the post page
 
         '''
+        self.token = token
         self.driver.get(f"https://divar.ir/v/-/{token}")
         page_source = self.driver.page_source
         self.soup = BeautifulSoup(page_source, "html.parser")
         time.sleep(wait) # time for page content to load
         self.price_mode = self._post_kind()
 
-    def exists(self, token):
+    def exists(self):
         '''
             checks if a post is still available or not
 
         '''
         if not self.soup:
-            self.getPost(token)
+            raise Exception("First use post.get(token) then check if it exists")
         try:
+            WebDriverWait(self.driver, 3).until(EC.presence_of_element_located((By.CLASS_NAME, 'kt-page-title__title')))
             WebDriverWait(self.driver, 3).until(EC.presence_of_element_located((By.CLASS_NAME, 'kt-page-title__title')))
             return True
         except Exception as e:
@@ -76,15 +78,13 @@ class Post:
             gets the post's date
 
         '''
-        date = self.soup.find_all(
-            "div",
-            class_="kt-page-title__subtitle kt-page-title__subtitle--responsive-sized",
-        )
+        date = self.driver.execute_script("return document.getElementsByClassName('kt-page-title__subtitle kt-page-title__subtitle--responsive-sized');")
+
         if not date:
             return None
         text = date[0].text
-        text = text.split()[0].strip()
-        return unidecode(text)
+        text = [unidecode(text.split()[0].strip()), text.split()[1].strip()]
+        return text
     
 
     
@@ -205,3 +205,11 @@ class Post:
                 price = [{"price1": price[0], "price2": price[1]}]
 
             return price
+    
+
+    def driverQuit(self):
+        '''
+        Quit the WebDriver
+        
+        '''
+        self.driver.quit()
