@@ -50,15 +50,12 @@ class Post:
             if not self.page_source:
                 raise Exception("First use post.get(token) then check if it exists")
             WebDriverWait(self.driver, 3).until(EC.presence_of_element_located((By.CLASS_NAME, 'kt-page-title__title'))) # location
-            WebDriverWait(self.driver, 3).until(EC.presence_of_element_located((By.CLASS_NAME, 'kt-page-title__subtitle kt-page-title__subtitle--responsive-sized'))) # date
-            WebDriverWait(self.driver, 3).until(EC.presence_of_element_located((By.CLASS_NAME, 'kt-feature-row'))) # post kind
-            WebDriverWait(self.driver, 3).until(EC.presence_of_element_located((By.CLASS_NAME, 'kt-group-row-item'))) # info
-            WebDriverWait(self.driver, 3).until(EC.presence_of_element_located((By.CLASS_NAME, 'kt-col-6'))) # price
-            WebDriverWait(self.driver, 3).until(EC.presence_of_element_located((By.CLASS_NAME, 'kt-unexpandable-row__value'))) # price
+            # WebDriverWait(self.driver, 3).until(EC.presence_of_element_located((By.CLASS_NAME, 'kt-page-title__subtitle kt-page-title__subtitle--responsive-sized'))) # date
+            # WebDriverWait(self.driver, 3).until(EC.presence_of_element_located((By.CLASS_NAME, 'kt-feature-row'))) # post kind
+            # WebDriverWait(self.driver, 3).until(EC.presence_of_element_located((By.CLASS_NAME, 'kt-group-row-item'))) # info
 
             return True
         except Exception as e:
-            print(e)
             return False
         
 
@@ -156,7 +153,7 @@ class Post:
             if d == "متراژ":
                  info['meterage'] = int(unidecode(data[counter+3]))
             elif d == "ساخت":
-                 info["build"] = int(unidecode(data[counter+3]))
+                 info["build"] = int(unidecode(data[counter+3])) if data[counter+3] != 'قبل از ۱۳۷۰' else 1370
             elif d == "اتاق":
                  info["rooms"] = int(unidecode(data[counter+3]))
             elif "آسانسور" in d:
