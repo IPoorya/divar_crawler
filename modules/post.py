@@ -40,10 +40,11 @@ class Post:
         self.driver.get(f"https://divar.ir/v/-/{token}")
         time.sleep(wait) # time for page content to load
         self.price_mode = self._post_kind()
+        self.page_source = self.driver.page_source
 
     def exists(self):
         '''
-            checks if a post is still available or not
+            checks if a post is available or not
 
         '''
         try:
@@ -92,18 +93,20 @@ class Post:
             gets the post's meterage, build, rooms, (elevator or balcony), parking, and storage status + prices
 
         '''
-        data = [{}]
+        data = []
         info = self._get_info()
-        price = self._get_price()
+        prices, extra_data= self._get_price()
 
-        data[0].update(info)
-        data[0].update(price[0])
-        if len(price) == 2:
-            data.append({})
-            data[1].update(info)
-            data[1].update(price[1])
+        for price in prices:
+            record = {}
+            for item in extra_data:
+                record.update(item)
+            record.update(info)
+            record.update(price)
+            data.append(record)
 
-        if not price:
+
+        if not prices:
             # didn't have price
             return False
 
@@ -165,6 +168,7 @@ class Post:
     
     def _get_price(self):
             price = []
+            extra_data = []
             if self.price_mode: # price is dynamic (it's a rent post)
                 element = self.driver.execute_script("return document.getElementsByClassName('kt-col-6');")
                 if not element:
@@ -186,10 +190,13 @@ class Post:
                     time.sleep(2)
                     element = self.driver.execute_script("return document.getElementsByClassName('kt-unexpandable-row__value');")
                 element = [e.text for e in element]
-            
 
                 for item in element:
-                    if item != "توافقی" and 'تومان' in item:
+                    # ground area comes before the prices, so if we dont have any prices yet and the item is numeric, it means it's gound area(house and villa posts)
+                    # it's not price but the element has the prices class and for finding it we are reading prices so we add it to this method
+                    if not price and self._is_number(item): 
+                        extra_data.append({'ground_meterage': float(item)})
+                    elif item != "توافقی" and 'تومان' in item:
                         price.append(
                             self._get_number(item)
                             if self._is_number(
@@ -203,7 +210,7 @@ class Post:
                 
                 price = [{"price1": price[0], "price2": price[1]}]
 
-            return price
+            return price, extra_data
     
 
     def driverQuit(self):
