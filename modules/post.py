@@ -49,7 +49,13 @@ class Post:
         try:
             if not self.page_source:
                 raise Exception("First use post.get(token) then check if it exists")
-            WebDriverWait(self.driver, 3).until(EC.presence_of_element_located((By.CLASS_NAME, 'kt-page-title__title')))
+            WebDriverWait(self.driver, 3).until(EC.presence_of_element_located((By.CLASS_NAME, 'kt-page-title__title'))) # location
+            WebDriverWait(self.driver, 3).until(EC.presence_of_element_located((By.CLASS_NAME, 'kt-page-title__subtitle kt-page-title__subtitle--responsive-sized'))) # date
+            WebDriverWait(self.driver, 3).until(EC.presence_of_element_located((By.CLASS_NAME, 'kt-feature-row'))) # post kind
+            WebDriverWait(self.driver, 3).until(EC.presence_of_element_located((By.CLASS_NAME, 'kt-group-row-item'))) # info
+            WebDriverWait(self.driver, 3).until(EC.presence_of_element_located((By.CLASS_NAME, 'kt-col-6'))) # price
+            WebDriverWait(self.driver, 3).until(EC.presence_of_element_located((By.CLASS_NAME, 'kt-unexpandable-row__value'))) # price
+
             return True
         except Exception as e:
             print(e)
@@ -94,10 +100,12 @@ class Post:
         '''
         data = []
         info = self._get_info()
+        location = {'city': self.location()[0], 'neighborhood': self.location()[1]}
         prices, extra_data= self._get_price()
 
         for price in prices:
             record = {}
+            record.update(location)
             for item in extra_data:
                 record.update(item)
             record.update(info)
@@ -111,7 +119,6 @@ class Post:
 
         return data
 
-         
 
 
     def _is_number(self, str):
