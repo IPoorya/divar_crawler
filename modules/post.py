@@ -21,6 +21,7 @@ class Post:
         options.add_argument("--log-level=3")
         logging.basicConfig(level=logging.WARNING)
         max_retries = 5
+        self.page_source = ''
 
         for _ in range(max_retries):
             try:
@@ -37,8 +38,6 @@ class Post:
         '''
         self.token = token
         self.driver.get(f"https://divar.ir/v/-/{token}")
-        page_source = self.driver.page_source
-        self.soup = BeautifulSoup(page_source, "html.parser")
         time.sleep(wait) # time for page content to load
         self.price_mode = self._post_kind()
 
@@ -47,13 +46,13 @@ class Post:
             checks if a post is still available or not
 
         '''
-        if not self.soup:
-            raise Exception("First use post.get(token) then check if it exists")
         try:
-            WebDriverWait(self.driver, 3).until(EC.presence_of_element_located((By.CLASS_NAME, 'kt-page-title__title')))
+            if not self.page_source:
+                raise Exception("First use post.get(token) then check if it exists")
             WebDriverWait(self.driver, 3).until(EC.presence_of_element_located((By.CLASS_NAME, 'kt-page-title__title')))
             return True
         except Exception as e:
+            print(e)
             return False
         
 
