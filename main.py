@@ -16,6 +16,21 @@ def load_json(state=False):
 
 if __name__ == '__main__':
 
+    directories = [
+        'records',
+        'states',
+        'tokens',
+        'tokens/apartment-sell',
+        'tokens/apartment-rent',
+        'tokens/house-villa-sell',
+        'tokens/house-villa-rent'
+    ]
+
+    for directory in directories:
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+            print(f"Created directory: {directory}")
+
     my_crawler = Crawler()
 
     # loads supported cities from cities.json
