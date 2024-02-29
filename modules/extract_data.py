@@ -4,29 +4,39 @@ from modules.post import Post
 
 def extract_data(state, tokens, data):
     post = Post()
-    state['p'] = 0
+    state['index'] = 0
     while tokens:
         token = tokens.pop(0)
         post.get(token)
-        if post.exists(token):
+
+        if not post.exists():
+            post.get(token)
+
+        if post.exists():
             try:
-                postData = post.data(token)
+                postData = post.data()
+
             except Exception as e:
                 print(e)
                 continue
+
             if not postData:
-                    print(str(state['p']))
-                    print("didn't have price")
-                    state['p'] += 1
-                    continue
+                print(str(state['index']))
+                print("didn't have price")
+                state['index'] += 1
+                continue
+
             for record in postData:
-                data.append(record)
-                print(str(state['p']))
-                print(record)
-            state['p'] += 1
+                rec = {'token': token}
+                rec.update(record)
+                data.append(rec)
+                print(str(state['index']))
+                print(rec)
+            state['index'] += 1
         else:
-            print(str(state['p']) + ' - ' + '404')
-            state['p'] += 1
+            print(str(state['index']) + ' - ' + '404')
+            state['index'] += 1
         
+    
     post.driverQuit()
     return data

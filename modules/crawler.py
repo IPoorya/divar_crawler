@@ -76,8 +76,8 @@ class Crawler:
     @classmethod
     def extract_data(self, st):
 
-        def save_to_csv(data):
-            csv_file = f"{st['category']}/records.csv"
+        def save_to_csv(data, state):
+            csv_file = f"records/{state['category']}.csv"
             file_exists = os.path.isfile(csv_file)
 
             # Writing to csv file
@@ -94,54 +94,54 @@ class Crawler:
             data = []
 
             # If the file exists, load the existing data
-            if os.path.isfile(f"{state['mode']}-state.json"):
-                with open(f"{state['mode']}-state.json") as file:
+            if os.path.isfile(f"states/{state['category']}-{state['mode']}-state.json"):
+                with open(f"states/{state['category']}-{state['mode']}-state.json") as file:
                     data = json.load(file)
 
             # Add the new state to the data
             data.append(dict(state))
 
             # Write the data back to the file
-            with open(f"{state['mode']}-state.json", "w") as file:
+            with open(f"states/{state['category']}-{state['mode']}-state.json", "w") as file:
                 json.dump(data, file)
 
 
         manager = Manager()
         state = manager.dict()
+        state['mode'] = st['mode']
         state['category'] = st['category']
         state['file'] = st['file']
         state['window'] = st['window']
-        state['city'] = st['city']
-        state['p'] = st['p']
+        state['index'] = st['index']
 
-        # request count on one selenium browser,
-        # when its reached, we would open another browser
+        # request count on one selenium browser:
+        # when its reached, we should open another browser
         # to not reach the request limit
-        window_range = 70 
+        window_range = 50
 
-
-        json_files = [f for f in os.listdir(f'tokens/{state["mdoe"]}') if f.endswith('.json')]
+        json_files = [file for file in os.listdir(f'tokens/{state["category"]}') if file.endswith('.json')]
         if not json_files:
             print('not found: json file')
             exit()
 
         # loading last processing file
         json_file = json_files.pop(0)
-        while state['file'] and json_file != state['file']:
-            json_file = json_files.pop(0)
 
         # Loop through the files and load the data
-        while True:            
+        while True:  
+            if json_file != state['file']:
+                state['window'] = 0
+                state['index'] = 0          
 
             state['file'] = json_file
-            with open(os.path.join(f'tokens/{st["mode"]}', json_file), 'r') as f:
+            with open(os.path.join(f'tokens/{state["category"]}', json_file), 'r') as f:
                 # Load the data from the file and append it to the list
                 all_tokens = json.load(f) # all the tokens in a json file
                 wait_time = len(all_tokens)
 
             while True: # loop through tokens
                 tokens = [] # selected tokens to scrape in a process
-                all = [] # all the tokens sliced for window number to the end
+                all = [] # all the tokens sliced from window number to the end
                 print('window: ' + str(state["window"]))
                 if state['window'] != 0:
                     all = all_tokens[state["window"]:]
@@ -151,10 +151,8 @@ class Crawler:
                 else:
                     all = all_tokens.copy()
 
-                for i in range(len(all)):
-                    tokens.append(all[i])
-                    if len(tokens) >= window_range:
-                        break
+                while all and len(tokens) < window_range:
+                    tokens.append(all.pop(0))
 
                 scraped_data = manager.list()
                 print(json_file)
@@ -168,10 +166,11 @@ class Crawler:
                     time.sleep(30)
                     continue
                 else:
-                    state['window'] += state['p']
-                    save_to_csv(scraped_data)
+                    state['window'] += state['index']
+                    save_to_csv(scraped_data, state)
                     save_state(state)
-                    os.remove(f'tokens/{state["category"]}/{state["file"]}')
+                    
+            os.remove(f'tokens/{state["category"]}/{state["file"]}')
 
             if not json_files:
                 break

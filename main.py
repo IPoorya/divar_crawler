@@ -6,11 +6,11 @@ def load_json(state=False):
     if not state:
         with open('modules/cities.json') as file:
             return json.load(file)
-    if state['mode'] == 'extract tokens':
-        with open(f"states/{state['category']}-state.json", "r") as file:
+    if state['mode'] == 'extract-tokens':
+        with open(f"states/{state['category']}-{state['mode']}-state.json", "r") as file:
             return json.load(file)
-    elif state['mode'] == 'extract data':
-        with open(f"states/{state['category']}-state.json", "r") as file:
+    elif state['mode'] == 'extract-data':
+        with open(f"states/{state['category']}-{state['mode']}-state.json", "r") as file:
             return json.load(file)
 
 
@@ -26,7 +26,7 @@ if __name__ == '__main__':
         exit
 
     state = {}
-    print('-- DIVAR CRAWLER v1.0 --')
+    print('-- DIVAR CRAWLER --')
     print('')
 
 
@@ -38,11 +38,11 @@ if __name__ == '__main__':
         print('press enter to exit')
         ans = input()
         if ans == '1':
-            state['mode'] = 'extract tokens'
+            state['mode'] = 'extract-tokens'
             break
 
         elif ans == '2':
-            state['mode'] = 'extract data'
+            state['mode'] = 'extract-data'
             break
 
         elif ans == '':
@@ -55,7 +55,7 @@ if __name__ == '__main__':
 
     print('')
     # selecting category
-    while state['mode'] == 'extract tokens':
+    while True:
         print('select a category number:')
         print('1. apartment sell')
         print('2. apartment rent')
@@ -90,7 +90,7 @@ if __name__ == '__main__':
 
     print('')
     # selecting duration
-    while state['mode'] == 'extract tokens':
+    while state['mode'] == 'extract-tokens':
         print('select a duration')
         print('continue last process or extract tokens until ....... before')
         print('0. continue last process')
@@ -128,8 +128,8 @@ if __name__ == '__main__':
 
     print('')
     # extract tokens
-    if state['mode'] == 'extract tokens' and state['duration'] == '0': # continue last process
-        if os.path.isfile(f"states/{state['category']}-state.json"):
+    if state['mode'] == 'extract-tokens' and state['duration'] == '0': # continue last process
+        if os.path.isfile(f"states/{state['category']}-{state['mode']}-state.json"):
             last_state = load_json(state)[-1]
             state = {
                 "category": last_state['category'],
@@ -147,7 +147,7 @@ if __name__ == '__main__':
 
         exit()
 
-    elif state['mode'] == 'extract tokens': # selected a new duration
+    elif state['mode'] == 'extract-tokens': # selected a new duration
 
         print('')
         # selecting cities
@@ -187,40 +187,40 @@ if __name__ == '__main__':
 
     
     # new process for extracting tokens
-    if state['mode'] == 'extract tokens' and state['duration'] in persian_number.keys(): 
+    if state['mode'] == 'extract-tokens' and state['duration'] in persian_number.keys(): 
         state = {
                 "category": state['category'],
                 "mode": state['mode'],
                 "page": 0, 
                 "last_post_date": date(), 
                 "city": state['cities'], 
-                "request_count": 10, 
+                "request_count": 50, 
                 "duration": state['duration'],
                 "status": True
                 }
         
         my_crawler.extract_tokens(st=state)
 
-    elif state['mode'] == 'extract data':
-        if os.path.isfile(f"states/{state['mode']}-state.json"):
+    elif state['mode'] == 'extract-data':
+        if os.path.isfile(f"states/{state['category']}-{state['mode']}-state.json"):
                 last_state = load_json(state)[-1]
                 state = {
+                    "mode": last_state['mode'],
                     "category": last_state['category'],
                     "file": last_state['file'],
                     "window": last_state['window'], 
-                    "city": last_state['cities'],
-                    "p": last_state['p']
+                    "index": last_state['index']
                     }
         else:
             state = {
-                "category": '',
-                # "category": state['category'],
-                "file": '', 
+                "mode": state['mode'],
+                "category": state['category'],
+                "file": '', # next file to process 
                 "window": 0, 
-                "city": '',
-                # "city": state['cities'],
-                "p": 0
+                "index": 0
                 }
 
     
         my_crawler.extract_data(st=state)
+
+    print('END!')

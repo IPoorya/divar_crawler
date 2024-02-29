@@ -153,9 +153,9 @@ class Post:
             if d == "متراژ":
                  info['meterage'] = int(unidecode(data[counter+3]))
             elif d == "ساخت":
-                 info["build"] = int(unidecode(data[counter+3])) if data[counter+3] != 'قبل از ۱۳۷۰' else 1370
+                 info["build"] = 1370 if data[counter+3] == 'قبل از ۱۳۷۰' else int(unidecode(data[counter+3]))
             elif d == "اتاق":
-                 info["rooms"] = int(unidecode(data[counter+3]))
+                 info["rooms"] = 0 if data[counter+3] == 'بدون اتاق' else int(unidecode(data[counter+3]))
             elif "آسانسور" in d:
                  info["elevator"] = 1 if d == "آسانسور" else 0
             elif "پارکینگ" in d:
@@ -195,8 +195,8 @@ class Post:
                 element = [e.text for e in element]
 
                 for item in element:
-                    # ground area comes before the prices, so if we dont have any prices yet and the item is numeric, it means it's gound area(house and villa posts)
-                    # it's not price but the element has the prices class and for finding it we are reading prices so we add it to this method
+                    # ground area comes before the prices, so if we dont have any prices yet and the item is numeric, it means it's ground area(house and villa posts)
+                    # ground area shouldn't be scraped here but it has the prices class and for finding it we are reading prices so we add it to this method
                     if not price and self._is_number(item): 
                         extra_data.append({'ground_meterage': float(item)})
                     elif item != "توافقی" and 'تومان' in item:
