@@ -29,15 +29,15 @@ class Crawler:
             data = []
 
             # If the file exists, load the existing data
-            if os.path.isfile(f"states/{state['category']}-state.json"):
-                with open(f"states/{state['category']}-state.json", "r") as file:
+            if os.path.isfile(f"states/{state['category']}-{state['mode']}-state.json"):
+                with open(f"states/{state['category']}-{state['mode']}-state.json", "r") as file:
                     data = json.load(file)
 
             # Add the new state to the data
             data.append(dict(state))
 
             # Write the data back to the file
-            with open(f"states/{state['category']}-state.json", "w") as file:
+            with open(f"states/{state['category']}-{state['mode']}-state.json", "w") as file:
                 json.dump(data, file)
 
         manager = Manager()
