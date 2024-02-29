@@ -207,6 +207,8 @@ class Post:
                             )
                             else 0
                         )
+                    elif item == 'مجانی':
+                        price.append(0.0)
 
                 if not price:
                     return False
