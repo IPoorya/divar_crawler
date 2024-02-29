@@ -95,16 +95,3 @@ def extract_tokens(state, tokens):
     print('tokens found in this process: ' + str(len(tokens)))
     state["last_post_date"] = last_post_date
     post.driverQuit()
-
-
-# state = {
-#             "category": 'apartment-sell',
-#             "page": 0, 
-#             "last_post_date": '1708620046640430', 
-#             "city": ['1', '3'], 
-#             "request_count": 50, 
-#             "duration": '1',
-#             "status": True
-#             }
-# tokens = []
-# extract_tokens(state, tokens)
