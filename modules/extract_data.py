@@ -7,10 +7,10 @@ def extract_data(state, tokens, data):
     state['index'] = 0
     while tokens:
         token = tokens.pop(0)
-        post.get(token)
+        post.get(token, 1)
 
         if not post.exists():
-            post.get(token)
+            post.get(token, 1)
 
         if post.exists():
             try:
