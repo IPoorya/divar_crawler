@@ -8,7 +8,7 @@ def apiRequest(page, city, last_post_date, category, max_retries=10, timeout=3):
 
     
     data = {
-        "page": page,
+        "page": 0,
         "json_schema": {
             "cities": city,
             "category": {"value": f"{category}"},
